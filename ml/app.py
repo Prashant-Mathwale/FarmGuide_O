@@ -56,7 +56,7 @@ class SoilData(BaseModel):
 
 @app.post("/predict_crop")
 async def predict_crop(data: SoilData):
-    if model is None:
+    if crop_model is None:
         return {"success": False, "message": "Model not loaded on server."}
     
     # Extract features in the exact order the model was trained on
@@ -71,10 +71,10 @@ async def predict_crop(data: SoilData):
     ]])
 
     # Get class names
-    classes = model.classes_
+    classes = crop_model.classes_
     
     # Get probabilities for all classes
-    probabilities = model.predict_proba(features)[0]
+    probabilities = crop_model.predict_proba(features)[0]
     
     # Get top 3 indices sorted by probability
     top_indices = np.argsort(probabilities)[::-1][:3]
@@ -160,6 +160,68 @@ async def predict_price(request: PriceRequest):
         return {
             "success": True,
             "predicted_price_per_ton": price_per_ton
+        }
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+class TrendRequest(BaseModel):
+    crop: str
+
+@app.post("/price_trend")
+async def price_trend(request: TrendRequest):
+    if price_df is None:
+        return {"success": False, "message": "Price dataset not loaded."}
+    
+    try:
+        crop = request.crop.lower()
+        crop_data = price_df[price_df['Commodity'].str.lower() == crop]
+        
+        if crop_data.empty:
+            return {"success": False, "message": "Crop not found in dataset."}
+        
+        # We need historical data to show a trend. Let's take the last 7 unique days of data.
+        # Ensure data is sorted by date
+        crop_data['Price Date'] = pd.to_datetime(crop_data['Price Date'], format='%d/%m/%Y', errors='coerce')
+        crop_data = crop_data.dropna(subset=['Price Date'])
+        crop_data = crop_data.sort_values(by='Price Date')
+        
+        recent_data = crop_data.tail(7)
+        if len(recent_data) == 0:
+             return {"success": False, "message": "No dated data found."}
+             
+        # Extract last 7 prices (Modal_Price)
+        prices = recent_data['Modal_Price'].tolist()
+        dates = recent_data['Price Date'].dt.strftime('%a').tolist() # like 'Mon', 'Tue'
+        
+        # Calculate moving average and volatility
+        np_prices = np.array(prices)
+        sma = np.mean(np_prices)
+        std_dev = np.std(np_prices)
+        current_price = float(np_prices[-1])
+        
+        # Determine Volatility (Coefficient of Variation)
+        # If std_dev is more than 5% of the mean, consider it fluctuating
+        cv = (std_dev / sma) * 100
+        volatility_status = "Fluctuating" if cv > 5.0 else "Stable"
+        
+        # Recommendation
+        if current_price > sma * 1.02: # 2% above average
+            recommendation = "Good time to sell"
+        elif current_price < sma * 0.98: # 2% below average
+            recommendation = "Hold crop for better price"
+        else:
+            recommendation = "Market price is stable"
+            
+        # Format dataset for Recharts area graph
+        chart_data = [{"name": day, "price": int(price)} for day, price in zip(dates, prices)]
+            
+        return {
+            "success": True,
+            "chart_data": chart_data,
+            "volatility_status": volatility_status,
+            "recommendation": recommendation,
+            "current_price": int(current_price),
+            "sma": int(sma)
         }
     except Exception as e:
         return {"success": False, "message": str(e)}

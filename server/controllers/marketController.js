@@ -92,4 +92,28 @@ const getMarketPrices = async (req, res) => {
     }
 };
 
-module.exports = { getMarketPrices };
+const getMarketTrend = async (req, res) => {
+    try {
+        const crop = req.query.crop || 'wheat';
+
+        // Proxy request to Python ML Service for the volatility and SMA calculations
+        const pythonApiRes = await axios.post('http://127.0.0.1:8000/price_trend', {
+            crop: crop
+        });
+
+        if (pythonApiRes.data.success) {
+            return res.json({
+                success: true,
+                data: pythonApiRes.data
+            });
+        } else {
+            throw new Error(pythonApiRes.data.message || 'Failed to fetch trend from ML server');
+        }
+
+    } catch (error) {
+        console.error("Market Trend API Error:", error.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch market trend.' });
+    }
+};
+
+module.exports = { getMarketPrices, getMarketTrend };
