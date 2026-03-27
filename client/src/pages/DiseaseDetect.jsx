@@ -142,11 +142,6 @@ function DiseaseDetect() {
                                                     <AlertTriangle className="mr-2" size={24} /> {result.detectedDisease}
                                                 </h4>
                                             </div>
-                                            <div className="text-right">
-                                                <div className="inline-flex items-center px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-full text-sm font-bold">
-                                                    {Number(result.confidenceScore).toFixed(1)}% Conf
-                                                </div>
-                                            </div>
                                         </div>
 
                                         <div className="mb-8">
