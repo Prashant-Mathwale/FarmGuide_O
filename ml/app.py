@@ -16,6 +16,10 @@ import json
 
 app = FastAPI()
 
+@app.get("/")
+def home():
+    return {"status": "ok", "message": "ML Service is running"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
