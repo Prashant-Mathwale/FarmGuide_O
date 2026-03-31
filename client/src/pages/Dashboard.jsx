@@ -53,9 +53,6 @@ function Dashboard() {
                 <h2 className="font-headline text-4xl font-bold text-on-surface tracking-tight leading-tight">
                     Welcome back, <span className="text-primary glow-text">{user?.fullName?.split(' ')[0]}</span>
                 </h2>
-                <p className="text-on-surface-variant font-body mt-2 max-w-2xl">
-                    Your high-altitude diagnostic overview is ready. Field vitality is currently at <span className="text-primary font-bold">87%</span> across all sectors.
-                </p>
             </section>
 
             {/* Bento Grid Feature Cards */}
@@ -196,20 +193,6 @@ function Dashboard() {
                 </Link>
             </motion.div>
 
-            {/* Footer Metric Bar */}
-            <footer className="glass-panel rounded-2xl px-8 py-4 flex items-center justify-between mb-8">
-                <div className="flex items-center gap-8">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                        <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">System Status: Nominal</span>
-                    </div>
-                </div>
-                <div className="flex items-center gap-4 text-xs font-bold text-on-surface-variant">
-                    <span>VER: 4.8.2-OMEGA</span>
-                    <span className="text-primary/40">|</span>
-                    <span>SESSION: STABLE</span>
-                </div>
-            </footer>
         </div>
     );
 }
