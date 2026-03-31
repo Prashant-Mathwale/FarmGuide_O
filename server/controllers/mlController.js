@@ -133,7 +133,7 @@ const detectDisease = async (req, res) => {
 const predictPest = async (req, res) => {
     try {
         const payload = req.body;
-        
+
         // Call the Python FastAPI microservice
         const pythonApiRes = await axios.post('http://127.0.0.1:8000/predict_pest', payload);
 
